@@ -1,10 +1,5 @@
 import './style.css';
-import { mountSchedulerApp } from './components/SchedulerApp';
+import { createApp } from 'vue';
+import App from './App.vue';
 
-const app = document.querySelector<HTMLElement>('#app');
-
-if (!app) {
-  throw new Error('App root not found');
-}
-
-mountSchedulerApp(app);
+createApp(App).mount('#app');

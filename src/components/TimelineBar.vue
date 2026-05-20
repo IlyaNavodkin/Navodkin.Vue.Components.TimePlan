@@ -1,34 +1,6 @@
+<script lang="ts">
 import type { TimeScaleMode, TimelineBlock, TimelineSummaryBlock } from '../types';
 import { dayDiff, monthEndKey, monthStartKey, rangesIntersect, toDateKey } from '../utils/date';
-import { escapeHtml } from '../utils/html';
-
-export function TimelineBar(block: TimelineBlock, columns: Date[], columnWidth: number, scaleMode: TimeScaleMode): string {
-  const geometry = getBlockGeometry(block, columns, columnWidth, scaleMode);
-  if (!geometry) {
-    return '';
-  }
-
-  return `
-    <div class="timeline-bar" data-block-id="${block.id}" data-employee-id="${block.employeeId}" style="left:${geometry.left}px;width:${geometry.width}px;">
-      <span class="resize-handle left" data-resize="left"></span>
-      <span class="bar-title">${escapeHtml(block.title)}</span>
-      <span class="resize-handle right" data-resize="right"></span>
-    </div>
-  `;
-}
-
-export function SummaryBar(block: TimelineSummaryBlock, columns: Date[], columnWidth: number, scaleMode: TimeScaleMode): string {
-  const geometry = getBlockGeometry(block, columns, columnWidth, scaleMode);
-  if (!geometry) {
-    return '';
-  }
-
-  return `<div class="summary-bar" style="left:${geometry.left}px;width:${geometry.width}px;"></div>`;
-}
-
-export function ChargeStepLineCanvas(chargeId: string): string {
-  return `<canvas class="charge-step-line" data-charge-id="${chargeId}" aria-hidden="true"></canvas>`;
-}
 
 export function drawChargeStepLine(
   canvas: HTMLCanvasElement,
@@ -174,3 +146,45 @@ function getColumnStartKey(date: Date, scaleMode: TimeScaleMode): string {
 function getColumnEndKey(date: Date, scaleMode: TimeScaleMode): string {
   return scaleMode === 'month' ? monthEndKey(date) : toDateKey(date);
 }
+</script>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { TimeScaleMode as SetupTimeScaleMode, TimelineBlock as SetupTimelineBlock } from '../types';
+
+const props = defineProps<{
+  block: SetupTimelineBlock;
+  columns: Date[];
+  columnWidth: number;
+  scaleMode: SetupTimeScaleMode;
+}>();
+
+const emit = defineEmits<{
+  (event: 'block-mousedown', value: { event: MouseEvent; block: SetupTimelineBlock }): void;
+  (event: 'block-contextmenu', value: { event: MouseEvent; block: SetupTimelineBlock }): void;
+}>();
+
+const geometry = computed(() => getBlockGeometry(props.block, props.columns, props.columnWidth, props.scaleMode));
+</script>
+
+<template>
+  <div
+    v-if="geometry"
+    class="timeline-bar"
+    :data-block-id="block.id"
+    :data-employee-id="block.employeeId"
+    :style="{ left: `${geometry.left}px`, width: `${geometry.width}px` }"
+    @mousedown="emit('block-mousedown', { event: $event, block })"
+    @contextmenu="emit('block-contextmenu', { event: $event, block })"
+  >
+    <span
+      class="resize-handle left"
+      data-resize="left"
+    ></span>
+    <span class="bar-title">{{ block.title }}</span>
+    <span
+      class="resize-handle right"
+      data-resize="right"
+    ></span>
+  </div>
+</template>
