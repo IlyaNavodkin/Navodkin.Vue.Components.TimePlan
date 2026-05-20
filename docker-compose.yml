@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    container_name: timeplan-app
+    ports:
+      - "${APP_PORT:-8080}:80"
+    restart: unless-stopped
